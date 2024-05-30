@@ -14,9 +14,7 @@ REFERENCE_HEADER = [
 FILE_PATH = os.path.join(
     os.path.dirname(__file__),
     "test_files",
-    "BR",
-    "1",
-    "rules-categorizations_20240401140006_769287c0-8e21-4c2f-bf70-fc506129a85e.csv"
+    "rules-categorizations_20240401000005_7d0233eb-679f-4d86-8c67-9abe89c3f557.csv"
 )
 
 
@@ -81,7 +79,7 @@ def delete_unnecessary_mapped_fields(mapped_fields):
     return mapped_fields
 
 
-def map_fields(fields, reference_header):
+def map_fields(fields, reference_header=REFERENCE_HEADER):
     """
         Maps a list of input fields to the closest matching fields in the list of known fields.
     """
@@ -93,7 +91,7 @@ def map_fields(fields, reference_header):
     return mapped_fields
 
 
-def is_valid_header(header, reference_header):
+def is_valid_header(header, reference_header=REFERENCE_HEADER):
     """
         Checks if the header is valid returning a feedback message.
 
@@ -107,12 +105,9 @@ def is_valid_header(header, reference_header):
     differences = set(header) ^ set(reference_header)
 
     if differences:
-        print(f"Invalid header. {differences} not in {reference_header}.")
+        return print(f"Invalid header. {differences} not in {reference_header}.") and False
 
-        return False
-
-    print("Valid header.")
-    return True
+    return print("Valid header.") and True
 
 
 if __name__ == "__main__":
@@ -120,6 +115,6 @@ if __name__ == "__main__":
 
     header = df.columns.tolist()
 
-    mapped_fields = map_fields(header, REFERENCE_HEADER)
+    header_mapped_fields = map_fields(header)
 
-    is_valid_header(mapped_fields, REFERENCE_HEADER)
+    is_valid_header(header_mapped_fields)
