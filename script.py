@@ -1,6 +1,8 @@
 import difflib
 import re
 
+import pandas as pd
+
 REFERENCE_HEADER = [
     'id', 'mac', 'dhcp60', 'hostname', 'dhcp55', 'device_category',
     'device_type', 'device_name', 'device_os', 'device_manufacturer',
