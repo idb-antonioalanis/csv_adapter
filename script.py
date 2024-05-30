@@ -13,7 +13,9 @@ FILE_PATH = os.path.join(
     "Datos PRO BR - 1 abril.csv"
 )
 
-SEPARATOR = ';'
+SEPARATORS = [',', ';', '\t']
+
+ROWS_TO_CHECK = 3
 
 
 def normalize(name):
@@ -60,6 +62,35 @@ def find_best_match(name, choices):
         return best_match
 
     return name
+
+
+def detect_separator(filename, rows_to_check=ROWS_TO_CHECK):
+    """
+        Detects the separator used in a CSV file.
+
+        It will read the first `rows_to_check` rows of the file and count the occurrences of each separator in the rows. The separator with the highest count will be returned.
+
+        Args:
+            filename (str): The path to the CSV file.
+            rows_to_check (int): The number of rows to check for the separator.
+
+        Returns:
+            str: The detected separator.
+    """
+    separators_counter = {separator: 0 for separator in SEPARATORS}
+
+    with open(filename, 'r') as file:
+        for _ in range(rows_to_check):
+            line = file.readline()
+
+            if not line:
+                break
+
+            for separator in separators_counter.keys():
+                if separator in line:
+                    separators_counter[separator] += 1
+
+    return max(separators_counter, key=separators_counter.get)
 
 
 def delete_unnecessary_mapped_fields(mapped_fields):
@@ -109,9 +140,11 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
 
 
 if __name__ == "__main__":
+    separator = detect_separator(FILE_PATH)
+
     df = pd.read_csv(FILE_PATH)
 
-    header = df.columns.tolist()[0].split(SEPARATOR)
+    header = df.columns.tolist()[0].split(separator)
 
     header_mapped_fields = map_fields(header)
 
