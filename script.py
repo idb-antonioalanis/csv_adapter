@@ -1,3 +1,5 @@
+import os
+
 import difflib
 import re
 
@@ -8,6 +10,14 @@ REFERENCE_HEADER = [
     'device_type', 'device_name', 'device_os', 'device_manufacturer',
     'device_additional_info', 'inference_key', 'random_mac', 'candidates_categories'
 ]
+
+FILE_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "test_files",
+    "BR",
+    "1",
+    "rules-categorizations_20240401140006_769287c0-8e21-4c2f-bf70-fc506129a85e.csv"
+)
 
 
 def normalize(name):
@@ -84,6 +94,16 @@ def map_fields(fields, reference_header):
 
 
 def is_valid_header(header, reference_header):
+    """
+        Checks if the header is valid returning a feedback message.
+
+        Args:
+            header (list): The header to validate.
+            reference_header (list): The reference header to compare against.
+
+        Returns:
+            bool: True if the header is valid, False otherwise.
+    """
     differences = set(header) ^ set(reference_header)
 
     if differences:
@@ -96,20 +116,10 @@ def is_valid_header(header, reference_header):
 
 
 if __name__ == "__main__":
-    another_header = [
-        'Categorization date', 'MAC', 'DHCP 60', 'DHCP 55', 'Host name',
-        'Device category', 'Device type', 'Device name', 'Device OS',
-        'Device manufacturer', 'Is it a random mac?', 'Inference key',
-        'Device additional info', 'Rules file name', 'Candidates', 'Extra field'
-    ]
+    df = pd.read_csv(FILE_PATH)
 
-    print(f"Reference header: {REFERENCE_HEADER}", end="\n\n")
+    header = df.columns.tolist()
 
-    print(f"Another header: {another_header}", end="\n\n")
+    mapped_fields = map_fields(header, REFERENCE_HEADER)
 
-    another_header_mapped = map_fields(another_header, REFERENCE_HEADER)
-
-    print(f"Mapped fields from Another header: {
-          another_header_mapped}", end="\n\n")
-
-    is_valid_header(another_header_mapped, REFERENCE_HEADER)
+    is_valid_header(mapped_fields, REFERENCE_HEADER)
