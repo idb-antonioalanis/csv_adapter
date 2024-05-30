@@ -5,17 +5,15 @@ import re
 
 import pandas as pd
 
-REFERENCE_HEADER = [
-    'id', 'mac', 'dhcp60', 'hostname', 'dhcp55', 'device_category',
-    'device_type', 'device_name', 'device_os', 'device_manufacturer',
-    'device_additional_info', 'inference_key', 'random_mac', 'candidates_categories'
-]
+REFERENCE_HEADER = ['id', 'mac', 'dhcp60', 'hostname', 'dhcp55']
 
 FILE_PATH = os.path.join(
     os.path.dirname(__file__),
     "test_files",
-    "rules-categorizations_20240401000005_7d0233eb-679f-4d86-8c67-9abe89c3f557.csv"
+    "Datos PRO BR - 1 abril.csv"
 )
+
+SEPARATOR = ';'
 
 
 def normalize(name):
@@ -93,7 +91,7 @@ def map_fields(fields, reference_header=REFERENCE_HEADER):
 
 def is_valid_header(header, reference_header=REFERENCE_HEADER):
     """
-        Checks if the header is valid returning a feedback message.
+        Checks if the header is valid and returns a feedback message.
 
         Args:
             header (list): The header to validate.
@@ -113,7 +111,7 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
 if __name__ == "__main__":
     df = pd.read_csv(FILE_PATH)
 
-    header = df.columns.tolist()
+    header = df.columns.tolist()[0].split(SEPARATOR)
 
     header_mapped_fields = map_fields(header)
 
