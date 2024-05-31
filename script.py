@@ -7,14 +7,19 @@ import pandas as pd
 
 
 # Reference header to compare against.
-REFERENCE_HEADER = ['id', 'mac', 'dhcp60',
-                    'hostname', 'dhcp55']
+REFERENCE_HEADER = [
+    'id',
+    'mac',
+    'dhcp60',
+    'hostname',
+    'dhcp55'
+]
 
 # Path to the CSV file.
 FILE_PATH = os.path.join(
     os.path.dirname(__file__),
     "test_files",
-    "Datos PRO BR - 1 abril copy extra field.csv"
+    "separator-misleading_field-extrafield-rename.csv"
 )
 
 # List of possible separators.
@@ -24,14 +29,14 @@ SEPARATORS = [',', ';', '\t']
 ROWS_TO_CHECK = 3
 
 
-def detect_separator(filename, rows_to_check=ROWS_TO_CHECK, separators=SEPARATORS):
+def detect_separator(path, rows_to_check=ROWS_TO_CHECK, separators=SEPARATORS):
     """
         Detects the separator used in a CSV file.
 
         It will read the first `rows_to_check` rows of the file and count the occurrences of each separator in the rows. The separator with the highest count will be returned.
 
         Args:
-            filename (str): The path to the CSV file.
+            path (str): The path to the CSV file.
             rows_to_check (int): The number of rows to check for the separator.
 
         Returns:
@@ -39,7 +44,7 @@ def detect_separator(filename, rows_to_check=ROWS_TO_CHECK, separators=SEPARATOR
     """
     separators_counter = {}
 
-    with open(filename, 'r') as file:
+    with open(path, 'r') as file:
         for _ in range(rows_to_check):
             line = file.readline()
 
@@ -131,7 +136,7 @@ def map_fields(fields, reference_header=REFERENCE_HEADER):
 
 def get_mapped_fields_list(mapped_fields):
     """
-        Returns the list of mapped fields. 
+        Returns the list of mapped fields.
 
         If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
 
@@ -141,7 +146,7 @@ def get_mapped_fields_list(mapped_fields):
             mapped_fields (dict): The mapped fields.
 
         Returns:
-            list: The list of mapped fields. 
+            list: The list of mapped fields.
     """
     mapped_fields_list = []
 
@@ -168,7 +173,7 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
     """
     def get_mapped_fields_list(mapped_fields):
         """
-            Returns the list of mapped fields. 
+            Returns the list of mapped fields.
 
             If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
 
@@ -178,7 +183,7 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
                 mapped_fields (dict): The mapped fields.
 
             Returns:
-                list: The list of mapped fields. 
+                list: The list of mapped fields.
         """
         mapped_fields_list = []
 
@@ -205,13 +210,45 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
     return True
 
 
+def adapt_df(df, header_mapped_fields, reference_header=REFERENCE_HEADER):
+    adapted_df = df.copy()
+
+    for field, matches in header_mapped_fields.items():
+        if len(matches) >= 1:
+            match_ = matches[0]
+
+            if match_ is not None and field != match_:
+                adapted_df.rename(
+                    columns={
+                        field: match_
+                    },
+                    inplace=True,
+                    errors='raise'
+                )
+
+                print(f"Column '{field}' renamed to '{match_}'.")
+
+    header = adapted_df.columns.tolist()
+
+    columns_to_drop = set(header) ^ set(reference_header)
+
+    adapted_df.drop(columns=columns_to_drop, inplace=True)
+
+    print(f"Columns {columns_to_drop} dropped.")
+
+    return adapted_df
+
+
 if __name__ == "__main__":
     separator = detect_separator(FILE_PATH)
 
-    df = pd.read_csv(FILE_PATH)
+    df = pd.read_csv(FILE_PATH, sep=separator)
 
-    header = df.columns.tolist()[0].split(separator)
+    header = df.columns.tolist()
 
     header_mapped_fields = map_fields(header)
 
-    is_valid_header(header_mapped_fields)
+    if is_valid_header(header_mapped_fields):
+        adapted_df = adapt_df(df, header_mapped_fields)
+
+        print(adapted_df)
