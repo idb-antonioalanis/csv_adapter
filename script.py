@@ -5,17 +5,54 @@ import re
 
 import pandas as pd
 
-REFERENCE_HEADER = ['id', 'mac', 'dhcp60', 'hostname', 'dhcp55']
 
+# Reference header to compare against.
+REFERENCE_HEADER = ['id', 'mac', 'dhcp60',
+                    'hostname', 'dhcp55']
+
+# Path to the CSV file.
 FILE_PATH = os.path.join(
     os.path.dirname(__file__),
     "test_files",
-    "Datos PRO BR - 1 abril.csv"
+    "Datos PRO BR - 1 abril copy extra field.csv"
 )
 
+# List of possible separators.
 SEPARATORS = [',', ';', '\t']
 
+# Number of rows to check for the separator.
 ROWS_TO_CHECK = 3
+
+
+def detect_separator(filename, rows_to_check=ROWS_TO_CHECK, separators=SEPARATORS):
+    """
+        Detects the separator used in a CSV file.
+
+        It will read the first `rows_to_check` rows of the file and count the occurrences of each separator in the rows. The separator with the highest count will be returned.
+
+        Args:
+            filename (str): The path to the CSV file.
+            rows_to_check (int): The number of rows to check for the separator.
+
+        Returns:
+            str: The detected separator.
+    """
+    separators_counter = {}
+
+    with open(filename, 'r') as file:
+        for _ in range(rows_to_check):
+            line = file.readline()
+
+            if not line:
+                break
+
+            for separator in separators:
+                if separator in line:
+                    separators_counter.setdefault(separator, 0)
+
+                    separators_counter[separator] += 1
+
+    return max(separators_counter, key=separators_counter.get)
 
 
 def normalize(name):
@@ -45,6 +82,7 @@ def find_best_match(name, choices):
 
         Returns:
             str: The best match for the string in the list of choices or the string itself if no match is found.
+            None: If no match is found and no string is returned.
     """
     normalized_name = normalize(name)
 
@@ -55,69 +93,66 @@ def find_best_match(name, choices):
         cutoff=0.6
     )
 
-    if best_match:
-        index = choices.index(best_match[0])
-        best_match = choices[index]
+    if not best_match:
+        return None
 
-        return best_match
+    index = choices.index(best_match[0])
+    best_match = choices[index]
 
-    return name
-
-
-def detect_separator(filename, rows_to_check=ROWS_TO_CHECK):
-    """
-        Detects the separator used in a CSV file.
-
-        It will read the first `rows_to_check` rows of the file and count the occurrences of each separator in the rows. The separator with the highest count will be returned.
-
-        Args:
-            filename (str): The path to the CSV file.
-            rows_to_check (int): The number of rows to check for the separator.
-
-        Returns:
-            str: The detected separator.
-    """
-    separators_counter = {separator: 0 for separator in SEPARATORS}
-
-    with open(filename, 'r') as file:
-        for _ in range(rows_to_check):
-            line = file.readline()
-
-            if not line:
-                break
-
-            for separator in separators_counter.keys():
-                if separator in line:
-                    separators_counter[separator] += 1
-
-    return max(separators_counter, key=separators_counter.get)
-
-
-def delete_unnecessary_mapped_fields(mapped_fields):
-    """
-        Deletes unnecessary mapped fields.
-
-        If there is a mapped field that is not in the list of known fields or is a duplicate, it will be removed from the list of mapped fields.
-    """
-    for field in mapped_fields:
-        if field not in REFERENCE_HEADER:
-            mapped_fields.remove(field)
-
-    mapped_fields = list(set(mapped_fields))
-
-    return mapped_fields
+    return best_match
 
 
 def map_fields(fields, reference_header=REFERENCE_HEADER):
     """
-        Maps a list of input fields to the closest matching fields in the list of known fields.
+        Maps the fields in the header to the reference header.
+
+        Duplicated fields will be mapped to the same reference field and fields with no match will be mapped to None.
+
+        For example, if the header is ['ID', 'MAC', 'Hostname', 'ID', '??'] and the reference header is ['id', 'mac', 'dhcp60', 'hostname', 'dhcp55'], the function will return {'ID': ['id', 'id'], 'MAC': ['mac'], 'Hostname': ['hostname'], '??': [None]}.
+
+        Args:
+            fields (list): The fields in the header.
+            reference_header (list): The reference header to compare against.
+
+        Returns:
+            dict: A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
     """
-    mapped_fields = [
-        find_best_match(field, reference_header) for field in fields
-    ]
-    mapped_fields = delete_unnecessary_mapped_fields(mapped_fields)
+    mapped_fields = {}
+
+    for field in fields:
+        mapped_fields.setdefault(field, [])
+
+        best_match = find_best_match(field, reference_header)
+
+        mapped_fields[field].append(best_match)
 
     return mapped_fields
+
+
+def get_mapped_fields_list(mapped_fields):
+    """
+        Returns the list of mapped fields. 
+
+        If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
+
+        For example, if the mapped fields are {'ID': ['id', 'id'], 'MAC': ['mac'], 'Hostname': ['hostname'], '??': [None]}, the function will return ['id', 'mac', 'hostname'].
+
+        Args:
+            mapped_fields (dict): The mapped fields.
+
+        Returns:
+            list: The list of mapped fields. 
+    """
+    mapped_fields_list = []
+
+    for _, matches in mapped_fields.items():
+        if len(matches) >= 1:
+            match_ = matches[0]
+
+            if match_ is not None:
+                mapped_fields_list.append(match_)
+
+    return mapped_fields_list
 
 
 def is_valid_header(header, reference_header=REFERENCE_HEADER):
@@ -131,12 +166,43 @@ def is_valid_header(header, reference_header=REFERENCE_HEADER):
         Returns:
             bool: True if the header is valid, False otherwise.
     """
-    differences = set(header) ^ set(reference_header)
+    def get_mapped_fields_list(mapped_fields):
+        """
+            Returns the list of mapped fields. 
+
+            If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
+
+            For example, if the mapped fields are {'ID': ['id', 'id'], 'MAC': ['mac'], 'Hostname': ['hostname'], '??': [None]}, the function will return ['id', 'mac', 'hostname'].
+
+            Args:
+                mapped_fields (dict): The mapped fields.
+
+            Returns:
+                list: The list of mapped fields. 
+        """
+        mapped_fields_list = []
+
+        for _, matches in mapped_fields.items():
+            if len(matches) >= 1:
+                match_ = matches[0]
+
+                if match_ is not None:
+                    mapped_fields_list.append(match_)
+
+        return mapped_fields_list
+
+    header_mapped_fields_list = get_mapped_fields_list(header)
+
+    differences = set(header_mapped_fields_list) ^ set(reference_header)
 
     if differences:
-        return print(f"Invalid header. {differences} not in {reference_header}.") and False
+        print(f"Invalid header. {differences} not in {reference_header}.")
 
-    return print("Valid header.") and True
+        return False
+
+    print("Valid header.")
+
+    return True
 
 
 if __name__ == "__main__":
