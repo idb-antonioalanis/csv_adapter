@@ -134,32 +134,6 @@ def map_fields(fields, reference_header=REFERENCE_HEADER):
     return mapped_fields
 
 
-def get_mapped_fields_list(mapped_fields):
-    """
-        Returns the list of mapped fields.
-
-        If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
-
-        For example, if the mapped fields are {'ID': ['id', 'id'], 'MAC': ['mac'], 'Hostname': ['hostname'], '??': [None]}, the function will return ['id', 'mac', 'hostname'].
-
-        Args:
-            mapped_fields (dict): The mapped fields.
-
-        Returns:
-            list: The list of mapped fields.
-    """
-    mapped_fields_list = []
-
-    for _, matches in mapped_fields.items():
-        if len(matches) >= 1:
-            match_ = matches[0]
-
-            if match_ is not None:
-                mapped_fields_list.append(match_)
-
-    return mapped_fields_list
-
-
 def is_valid_header(header, reference_header=REFERENCE_HEADER):
     """
         Checks if the header is valid and returns a feedback message.
