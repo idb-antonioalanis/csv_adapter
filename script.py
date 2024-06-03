@@ -15,11 +15,14 @@ REFERENCE_HEADER = [
     'dhcp55'
 ]
 
+# Name of the CSV file.
+FILE_NAME = "separator-misleading_field-extrafield-rename.csv"
+
 # Path to the CSV file.
 FILE_PATH = os.path.join(
     os.path.dirname(__file__),
     "test_files",
-    "separator-misleading_field-extrafield-rename.csv"
+    FILE_NAME
 )
 
 # List of possible separators.
@@ -134,81 +137,60 @@ def map_fields(fields, reference_header=REFERENCE_HEADER):
     return mapped_fields
 
 
-def is_valid_header(header, reference_header=REFERENCE_HEADER):
+def is_valid_header(header_mapped_fields, file_name=FILE_NAME):
     """
         Checks if the header is valid and returns a feedback message.
 
+        The header is considered valid if there are no duplicated fields.
+
         Args:
-            header (list): The header to validate.
-            reference_header (list): The reference header to compare against.
+            header_mapped_fields (dict): A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
 
         Returns:
             bool: True if the header is valid, False otherwise.
     """
-    def get_mapped_fields_list(mapped_fields):
-        """
-            Returns the list of mapped fields.
+    duplicated_fields = [
+        field
+        for field, matches in header_mapped_fields.items()
+        if len(matches) > 1
+    ]
 
-            If a field was duplicated, it will only return the first match. If a field had no match, it will not be included in the list.
+    if not duplicated_fields:
+        return True
 
-            For example, if the mapped fields are {'ID': ['id', 'id'], 'MAC': ['mac'], 'Hostname': ['hostname'], '??': [None]}, the function will return ['id', 'mac', 'hostname'].
+    print(f"Error in file '{file_name}'.")
+    print(f"{duplicated_fields} duplicated.")
 
-            Args:
-                mapped_fields (dict): The mapped fields.
-
-            Returns:
-                list: The list of mapped fields.
-        """
-        mapped_fields_list = []
-
-        for _, matches in mapped_fields.items():
-            if len(matches) >= 1:
-                match_ = matches[0]
-
-                if match_ is not None:
-                    mapped_fields_list.append(match_)
-
-        return mapped_fields_list
-
-    header_mapped_fields_list = get_mapped_fields_list(header)
-
-    differences = set(header_mapped_fields_list) ^ set(reference_header)
-
-    if differences:
-        print(f"Invalid header. {differences} not in {reference_header}.")
-
-        return False
-
-    print("Valid header.")
-
-    return True
+    return False
 
 
-def adapt_df(df, header_mapped_fields, reference_header=REFERENCE_HEADER):
+def adapt_df(df, header_mapped_fields):
+    """
+        Adapts the DataFrame by renaming the columns and dropping the columns with no match.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to adapt.
+            header_mapped_fields (dict): A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
+
+        Returns:
+            pd.DataFrame: The adapted DataFrame.
+    """
     adapted_df = df.copy()
 
     for field, matches in header_mapped_fields.items():
-        if len(matches) >= 1:
-            match_ = matches[0]
+        match_ = matches[0]
 
-            if match_ is not None and field != match_:
-                adapted_df.rename(
-                    columns={
-                        field: match_
-                    },
-                    inplace=True,
-                    errors='raise'
-                )
+        if match_ is None:
+            adapted_df.drop(columns=field, inplace=True)
 
-                print(f"Column '{field}' renamed to '{match_}'.")
+            print(f"Column '{field}' dropped.")
 
-    header = adapted_df.columns.tolist()
+            continue
 
-    columns_to_drop = set(header) ^ set(reference_header)
+        if field != match_:
+            adapted_df.rename(columns={field: match_}, inplace=True)
 
-    adapted_df.drop(columns=columns_to_drop, inplace=True)
-
-    print(f"Columns {columns_to_drop} dropped.")
+            print(f"Column '{field}' renamed to '{match_}'.")
 
     return adapted_df
 
