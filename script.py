@@ -8,7 +8,6 @@ import pandas as pd
 
 # Reference header to compare against.
 REFERENCE_HEADER = [
-    'id',
     'mac',
     'dhcp60',
     'hostname',
@@ -16,7 +15,7 @@ REFERENCE_HEADER = [
 ]
 
 # Name of the CSV file.
-FILE_NAME = "separator-misleading_field-extrafield-rename.csv"
+FILE_NAME = "rules-categorizations_20240603000005_5aead881-a19b-4463-ba8f-45f606d572e2.csv"
 
 # Path to the CSV file.
 FILE_PATH = os.path.join(
@@ -28,7 +27,7 @@ FILE_PATH = os.path.join(
 # List of possible separators.
 SEPARATORS = [',', ';', '\t']
 
-# Number of rows to check for the separator.
+# Number of rows to check for detecting the separator.
 ROWS_TO_CHECK = 3
 
 
@@ -137,11 +136,11 @@ def map_fields(fields, reference_header=REFERENCE_HEADER):
     return mapped_fields
 
 
-def is_valid_header(header_mapped_fields, file_name=FILE_NAME):
+def is_valid_header(header_mapped_fields, file_name=FILE_NAME, reference_header=REFERENCE_HEADER):
     """
         Checks if the header is valid and returns a feedback message.
 
-        The header is considered valid if there are no duplicated fields.
+        The header is considered valid if there are no duplicated fields and if it is a subset of the reference header.
 
         Args:
             header_mapped_fields (dict): A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
@@ -149,28 +148,40 @@ def is_valid_header(header_mapped_fields, file_name=FILE_NAME):
         Returns:
             bool: True if the header is valid, False otherwise.
     """
-    duplicated_fields = [
-        field
-        for field, matches in header_mapped_fields.items()
-        if len(matches) > 1
-    ]
+    flattened_header_mapped_fields_values = []
 
-    if not duplicated_fields:
+    duplicated_fields = []
+    missing_fields = []
+
+    for field, matches in header_mapped_fields.items():
+        flattened_header_mapped_fields_values.extend(matches)
+
+        if len(matches) > 1:
+            duplicated_fields.append(field)
+
+    missing_fields = list(
+        set(reference_header) - set(flattened_header_mapped_fields_values)
+    )
+
+    if not duplicated_fields and not missing_fields:
         return True
 
     print(f"Error in file '{file_name}'.")
-    print(f"{duplicated_fields} duplicated.")
+    duplicated_fields and print(f"{duplicated_fields} duplicated.")
+    missing_fields and print(f"{missing_fields} missing.")
 
     return False
 
 
-def adapt_df(df, header_mapped_fields):
+def adapt_df(df, header_mapped_fields, reference_header=REFERENCE_HEADER):
     """
-        Adapts the DataFrame by renaming the columns and dropping the columns with no match.
+        Adapts the DataFrame by renaming the columns, dropping the columns with no match and rearranging the columns according to the reference header.
 
         Args:
             df (pd.DataFrame): The DataFrame to adapt.
             header_mapped_fields (dict): A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
+            reference_header (list): The reference header to order the columns.
+
 
         Returns:
             pd.DataFrame: The adapted DataFrame.
@@ -187,24 +198,31 @@ def adapt_df(df, header_mapped_fields):
 
             continue
 
-        if field != match_:
+        if field != match_:  # Renaming the same column is unnecessary.
             adapted_df.rename(columns={field: match_}, inplace=True)
 
             print(f"Column '{field}' renamed to '{match_}'.")
+
+    if adapted_df.columns.tolist() != reference_header:
+        adapted_df = adapted_df[reference_header]
+
+        print("Columns rearranged.")
 
     return adapted_df
 
 
 if __name__ == "__main__":
+    start_time = pd.Timestamp.now()
+
     separator = detect_separator(FILE_PATH)
 
     df = pd.read_csv(FILE_PATH, sep=separator)
 
-    header = df.columns.tolist()
-
-    header_mapped_fields = map_fields(header)
+    header_mapped_fields = map_fields(df.columns.tolist())
 
     if is_valid_header(header_mapped_fields):
         adapted_df = adapt_df(df, header_mapped_fields)
 
-        print(adapted_df)
+    end_time = pd.Timestamp.now()
+
+    print(f"Execution time - {end_time - start_time}")
