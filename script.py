@@ -10,15 +10,15 @@ import pandas as pd
 REFERENCE_HEADER = [
     'mac',
     'dhcp60',
-    'hostname',
-    'dhcp55'
+    'dhcp55',
+    'hostname'
 ]
 
 # Reference separator.
 REFERENCE_SEPARATOR = ';'
 
 # Name of the CSV file.
-FILE_NAME = "rules-categorizations_20240603000005_5aead881-a19b-4463-ba8f-45f606d572e2.csv"
+FILE_NAME = "correct.csv"
 
 # Path to the CSV file.
 FILE_PATH = os.path.join(
