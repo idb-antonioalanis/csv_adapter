@@ -14,6 +14,9 @@ REFERENCE_HEADER = [
     'dhcp55'
 ]
 
+# Reference separator.
+REFERENCE_SEPARATOR = ';'
+
 # Name of the CSV file.
 FILE_NAME = "rules-categorizations_20240603000005_5aead881-a19b-4463-ba8f-45f606d572e2.csv"
 
@@ -24,8 +27,15 @@ FILE_PATH = os.path.join(
     FILE_NAME
 )
 
+# Output path for the adapted CSV file.
+OUTPUT_FILE_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "output_files",
+    FILE_NAME
+)
+
 # List of possible separators.
-SEPARATORS = [',', ';', '\t']
+SEPARATORS = [',', ';', '\t', '|']
 
 # Number of rows to check for detecting the separator.
 ROWS_TO_CHECK = 3
@@ -81,7 +91,7 @@ def find_best_match(string, choices):
     """
         Finds the best match for a string in a list of choices.
 
-        It will use `difflib` to find the best match for the string in the list of choices. 
+        It will use `difflib` to find the best match for the string in the list of choices.
 
         If the best match has a similarity score greater than or equal indicated by the `cutoff` parameter, it will return the choice.
 
@@ -180,48 +190,68 @@ def adapt_df(df, header_mapped_fields, reference_header=REFERENCE_HEADER):
             df (pd.DataFrame): The DataFrame to adapt.
             header_mapped_fields (dict): A dictionary where the keys are the fields in the header and the values are the best matches in the reference header.
             reference_header (list): The reference header to order the columns.
-
-
-        Returns:
-            pd.DataFrame: The adapted DataFrame.
     """
-    adapted_df = df.copy()
-
     for field, matches in header_mapped_fields.items():
         match_ = matches[0]
 
         if match_ is None:
-            adapted_df.drop(columns=field, inplace=True)
+            df.drop(columns=field, inplace=True)
 
             print(f"Column '{field}' dropped.")
 
             continue
 
-        if field != match_:  # Renaming the same column is unnecessary.
-            adapted_df.rename(columns={field: match_}, inplace=True)
+        if field != match_:
+            df.rename(columns={field: match_}, inplace=True)
 
             print(f"Column '{field}' renamed to '{match_}'.")
 
-    if adapted_df.columns.tolist() != reference_header:
-        adapted_df = adapted_df[reference_header]
+    if df.columns.tolist() != reference_header:
+        df = df[reference_header]
 
         print("Columns rearranged.")
 
-    return adapted_df
+    return df
 
 
-if __name__ == "__main__":
-    start_time = pd.Timestamp.now()
+def build(df, separator, reference_separator=REFERENCE_SEPARATOR):
+    """
+        Builds the adapted CSV file.
 
+        Args:
+            df (pd.DataFrame): The DataFrame to build the CSV file from.
+            separator (str): The separator to use in the CSV file.
+            reference_separator (str): The reference separator to compare against.
+    """
+    if not os.path.exists(os.path.dirname(OUTPUT_FILE_PATH)):
+        os.makedirs(os.path.dirname(OUTPUT_FILE_PATH))
+
+    df.to_csv(OUTPUT_FILE_PATH, sep=reference_separator, index=False)
+
+    if separator != reference_separator:
+        print(f"Separator '{separator}' changed to '{reference_separator}'.")
+
+
+def run():
+    """
+        Runs the script.
+    """
     separator = detect_separator(FILE_PATH)
 
     df = pd.read_csv(FILE_PATH, sep=separator)
 
-    header_mapped_fields = map_fields(df.columns.tolist())
+    header = df.columns.tolist()
 
-    if is_valid_header(header_mapped_fields):
-        adapted_df = adapt_df(df, header_mapped_fields)
+    if header != REFERENCE_HEADER:
+        header_mapped_fields = map_fields(header)
 
-    end_time = pd.Timestamp.now()
+        if is_valid_header(header_mapped_fields):
+            adapt_df(df, header_mapped_fields)
 
-    print(f"Execution time - {end_time - start_time}")
+    build(df, separator)
+
+
+if __name__ == "__main__":
+    start_time = pd.Timestamp.now()
+    run()
+    print(f"Execution time - {pd.Timestamp.now() - start_time}")

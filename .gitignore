@@ -1,2 +1,5 @@
 # pyenv
 .venv/
+
+# output_files
+output_files/
