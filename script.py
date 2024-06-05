@@ -77,11 +77,13 @@ def normalize(name):
     return re.sub(r'\s+', '_', name.strip().lower())
 
 
-def find_best_match(name, choices):
+def find_best_match(string, choices):
     """
         Finds the best match for a string in a list of choices.
 
-        It will use `difflib` to find the best match for the string in the list of choices. If the best match has a similarity score greater than or equal indicated by the `cutoff` parameter, it will return the choice. Otherwise, it will return the string itself.
+        It will use `difflib` to find the best match for the string in the list of choices. 
+
+        If the best match has a similarity score greater than or equal indicated by the `cutoff` parameter, it will return the choice.
 
         Args:
             name (str): The string to find the best match for.
@@ -91,7 +93,7 @@ def find_best_match(name, choices):
             str: The best match for the string in the list of choices or the string itself if no match is found.
             None: If no match is found and no string is returned.
     """
-    normalized_name = normalize(name)
+    normalized_name = normalize(string)
 
     best_match = difflib.get_close_matches(
         normalized_name,
@@ -103,10 +105,7 @@ def find_best_match(name, choices):
     if not best_match:
         return None
 
-    index = choices.index(best_match[0])
-    best_match = choices[index]
-
-    return best_match
+    return best_match[0]
 
 
 def map_fields(fields, reference_header=REFERENCE_HEADER):
