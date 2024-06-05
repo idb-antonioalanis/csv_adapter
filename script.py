@@ -240,15 +240,28 @@ def run():
 
     df = pd.read_csv(FILE_PATH, sep=separator)
 
+    print(f"File '{FILE_NAME}'.")
+
     header = df.columns.tolist()
+
+    if header == REFERENCE_HEADER and separator == REFERENCE_SEPARATOR:
+        print("The file already has the correct format.")
+
+        return
 
     if header != REFERENCE_HEADER:
         header_mapped_fields = map_fields(header)
 
-        if is_valid_header(header_mapped_fields):
-            adapt_df(df, header_mapped_fields)
+        if not is_valid_header(header_mapped_fields):
+            print("Invalid file. Skipped.")
+
+            return
+
+        adapt_df(df, header_mapped_fields)
 
     build(df, separator)
+
+    print("File adapted.")
 
 
 if __name__ == "__main__":
