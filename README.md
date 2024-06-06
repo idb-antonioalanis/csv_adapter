@@ -43,6 +43,7 @@ This script provides a batch processing adapter that standardizes CSV files to a
 
     File 'correct.csv'.
     The file already has the correct format.
+    File built in 'valid_files/'.
 
     File 'extrafield-rename.csv'.
     Column 'ID' dropped.
