@@ -1,5 +1,11 @@
 # pyenv
 .venv/
 
-# output_files
-output_files/
+# .csv
+*.csv
+
+# test_files
+!test_files/
+
+# __pycache__
+__pycache__/
