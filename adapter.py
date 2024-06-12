@@ -224,6 +224,7 @@ class Adapter:
             if header == REFERENCE_HEADER and separator == REFERENCE_SEPARATOR:
                 print("The file already has the correct format.")
                 self.build(df, separator, file_name)
+                valid_files.append(file_name)
                 continue
 
             header_mapped_fields = self.map_fields(header)
