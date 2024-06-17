@@ -25,28 +25,28 @@ class Adapter:
         If the file is impossible to adapt, it will be copied to an invalid files directory. Otherwise, it will be adapted and copied to a valid files directory.
 
         Attributes:
-            file_names (list): The list of file names to adapt.
-            paths (list): The list of paths to the files to adapt.
+            _file_names (list): The list of file names to adapt.
+            _paths (list): The list of paths to the files to adapt.
     """
 
     def __init__(self):
-        self.start_time = pd.Timestamp.now()
+        self._start_time = pd.Timestamp.now()
 
-        self.file_names = [
+        self._file_names = [
             os.path.basename(path)
             for path in glob.glob(
                 os.path.join(INPUT_FILES_DIRECTORY, "*.csv")
             )
         ]
-        self.paths = [
+        self._paths = [
             os.path.join(
                 INPUT_FILES_DIRECTORY,
                 file_name
             )
-            for file_name in self.file_names
+            for file_name in self._file_names
         ]
 
-    def detect_separator(self, path, rows_to_check=3):
+    def _detect_separator(self, path, rows_to_check=3):
         """
             Detects the separator used in a CSV file.
 
@@ -75,7 +75,7 @@ class Adapter:
 
         return max(separators_counter, key=separators_counter.get)
 
-    def map_fields(self, header_fields):
+    def _map_fields(self, header_fields):
         """
             Maps the fields in the header to the reference header.
 
@@ -98,7 +98,7 @@ class Adapter:
 
         return header_mapped_fields
 
-    def is_valid_header(self, header_mapped_fields):
+    def _is_valid_header(self, header_mapped_fields):
         """
             Checks if the header is valid.
 
@@ -133,7 +133,7 @@ class Adapter:
 
         return False
 
-    def format(self, df, header_mapped_fields):
+    def _format(self, df, header_mapped_fields):
         """
             Formats the DataFrame by renaming the columns, dropping the columns with no match and rearranging the columns according to the reference header.
 
@@ -161,7 +161,7 @@ class Adapter:
 
         return df
 
-    def build(self, df, separator, file_name):
+    def _build(self, df, separator, file_name):
         """
             Builds the adapted CSV file with the reference separator.
 
@@ -187,7 +187,7 @@ class Adapter:
 
         print(f"File built in '{VALID_FILES_DIRECTORY}/'.")
 
-    def copy(self, file_name):
+    def _copy(self, file_name):
         """
             Copies a file that were impossible to adapt to an invalid files directory.
 
@@ -204,7 +204,7 @@ class Adapter:
 
         print(f"File copied to '{INVALID_FILES_DIRECTORY}/'.")
 
-    def proccess(self):
+    def _proccess(self):
         """
             All the processing steps for the adapter, returning the list of adapted or already valid files.
 
@@ -213,8 +213,8 @@ class Adapter:
         """
         valid_files = []
 
-        for file_name, path in zip(self.file_names, self.paths):
-            separator = self.detect_separator(path)
+        for file_name, path in zip(self._file_names, self._paths):
+            separator = self._detect_separator(path)
             df = pd.read_csv(path, sep=separator)
 
             print(f"\nFile '{file_name}'.")
@@ -223,20 +223,20 @@ class Adapter:
 
             if header == REFERENCE_HEADER and separator == REFERENCE_SEPARATOR:
                 print("The file already has the correct format.")
-                self.build(df, separator, file_name)
+                self._build(df, separator, file_name)
                 valid_files.append(file_name)
                 continue
 
-            header_mapped_fields = self.map_fields(header)
+            header_mapped_fields = self._map_fields(header)
 
-            if not self.is_valid_header(header_mapped_fields):
+            if not self._is_valid_header(header_mapped_fields):
                 print("Invalid file.")
-                self.copy(file_name)
+                self._copy(file_name)
                 print("This file will be skipped.")
                 continue
 
-            self.format(df, header_mapped_fields)
-            self.build(df, separator, file_name)
+            df = self._format(df, header_mapped_fields)
+            self._build(df, separator, file_name)
 
             valid_files.append(file_name)
 
@@ -249,10 +249,10 @@ class Adapter:
             Returns:
                 list: The list of adapted or already valid files.
         """
-        valid_files = self.proccess()
+        valid_files = self._proccess()
 
         print(
-            f"\n{self.__class__.__name__} tasks completed. Execution time - {pd.Timestamp.now() - self.start_time}.", end="\n\n"
+            f"\n{self.__class__.__name__} tasks completed. Execution time - {pd.Timestamp.now() - self._start_time}.", end="\n\n"
         )
 
         return valid_files
