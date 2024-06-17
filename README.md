@@ -9,7 +9,7 @@
 
 ## Overview
 
-This script provides a batch processing adapter that standardizes CSV files to a specific format expected by the batch processor.
+This script provides an adapter that standardizes CSV files to a specific format expected.
 
 ## Installation
 
