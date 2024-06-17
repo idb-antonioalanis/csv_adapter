@@ -1,6 +1,4 @@
-# adapt_vicente_batch_processing
-
-An idea to make vicente's batching process more efficient.
+# csv_adapter
 
 ## Table of Contents
 
@@ -62,46 +60,6 @@ This script provides a batch processing adapter that standardizes CSV files to a
     File built in 'valid_files/'.
 
     File 'rules-categorizations_20240601190004_78df76c2-e923-4b09-9b35-d985047b82ef.csv'.
-    Column 'Categorization date' dropped.
-    Column 'MAC' renamed to 'mac'.
-    Column 'DHCP 60' renamed to 'dhcp60'.
-    Column 'DHCP 55' renamed to 'dhcp55'.
-    Column 'Host name' renamed to 'hostname'.
-    Column 'Device category' dropped.
-    Column 'Device type' dropped.
-    Column 'Device name' dropped.
-    Column 'Device OS' dropped.
-    Column 'Device manufacturer' dropped.
-    Column 'Is it a random mac?' dropped.
-    Column 'Inference key' dropped.
-    Column 'Device additional info' dropped.
-    Column 'Rules file name' dropped.
-    Column 'Candidates' dropped.
-    File formatted.
-    Separator ',' changed to ';'.
-    File built in 'valid_files/'.
-
-    File 'rules-categorizations_20240603000005_5aead881-a19b-4463-ba8f-45f606d572e2.csv'.
-    Column 'Categorization date' dropped.
-    Column 'MAC' renamed to 'mac'.
-    Column 'DHCP 60' renamed to 'dhcp60'.
-    Column 'DHCP 55' renamed to 'dhcp55'.
-    Column 'Host name' renamed to 'hostname'.
-    Column 'Device category' dropped.
-    Column 'Device type' dropped.
-    Column 'Device name' dropped.
-    Column 'Device OS' dropped.
-    Column 'Device manufacturer' dropped.
-    Column 'Is it a random mac?' dropped.
-    Column 'Inference key' dropped.
-    Column 'Device additional info' dropped.
-    Column 'Rules file name' dropped.
-    Column 'Candidates' dropped.
-    File formatted.
-    Separator ',' changed to ';'.
-    File built in 'valid_files/'.
-
-    File 'rules-categorizations_20240604000011_eebd89ab-31c4-493a-b4c0-0c7556ff9996.csv'.
     Column 'Categorization date' dropped.
     Column 'MAC' renamed to 'mac'.
     Column 'DHCP 60' renamed to 'dhcp60'.
