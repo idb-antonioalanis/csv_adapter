@@ -37,7 +37,7 @@ This script provides a batch processing adapter that standardizes CSV files to a
 
 ### Example
 
-    PS C:\Users\idb0131\OneDrive - Telefonica\Documentos\GitHub\format_vicente_batch_processing> python script.py               
+    $ python script.py               
 
     File 'correct.csv'.
     The file already has the correct format.
@@ -95,4 +95,10 @@ This script provides a batch processing adapter that standardizes CSV files to a
 
     Adapter tasks completed. Execution time - 0 days 00:00:00.539540.
 
-    Valid files - ['extrafield-rename.csv', 'order-extrafield-rename.csv', 'rules-categorizations_20240601190004_78df76c2-e923-4b09-9b35-d985047b82ef.csv', 'rules-categorizations_20240603000005_5aead881-a19b-4463-ba8f-45f606d572e2.csv', 'rules-categorizations_20240604000011_eebd89ab-31c4-493a-b4c0-0c7556ff9996.csv', 'separator-extrafield-rename.csv', 'separator-misleading_field-extrafield-rename.csv'].
+    Valid files - [
+        'extrafield-rename.csv', 
+        'order-extrafield-rename.csv', 
+        'rules-categorizations_20240601190004_78df76c2-e923-4b09-9b35-d985047b82ef.csv', 
+        'separator-extrafield-rename.csv', 
+        'separator-misleading_field-extrafield-rename.csv'
+    ].
