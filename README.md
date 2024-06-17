@@ -15,8 +15,8 @@ This script provides a batch processing adapter that standardizes CSV files to a
 
 1. Clone the repository:
     ```bash
-    git clone <repository-url>
-    cd adapt_vicente_batch_processing
+    git clone https://github.com/idb-antonioalanis/csv_adapter
+    cd csv_adapter
     ```
 
 2. Install the required dependencies:
